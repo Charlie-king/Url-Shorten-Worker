@@ -1,14 +1,28 @@
 // 常量定义
-const github_repo = typeof(GITHUB_REPO) !== "undefined" ? GITHUB_REPO : 'AoEiuV020/Url-Shorten-Worker';
-const github_version = typeof(GITHUB_VERSION) !== "undefined" ? GITHUB_VERSION : '@main';
-const password = typeof(PASSWORD) !== "undefined" ? PASSWORD : 'AoEiuV020 yes';
-const shorten_timeout = typeof(SHORTEN_TIMEOUT) !== "undefined" ? SHORTEN_TIMEOUT.split("*").reduce((a, b) => parseInt(a) * parseInt(b), 1) : (1000 * 60 * 10);
-const default_len = typeof(DEFAULT_LEN) !== "undefined" ? parseInt(DEFAULT_LEN) : 6;
-const demo_mode = typeof(DEMO_MODE) !== "undefined" ? DEMO_MODE === 'true' : true;
-const remove_completely = typeof(REMOVE_COMPLETELY) !== "undefined" ? REMOVE_COMPLETELY === 'true' : true;
-const white_list = JSON.parse(typeof(WHITE_LIST) !== "undefined" ? WHITE_LIST : `["aoeiuv020.com","aoeiuv020.cn","aoeiuv020.cc","020.name"]`);
-const demo_notice = typeof(DEMO_NOTICE) !== "undefined" ? DEMO_NOTICE : `注意：为防止示例服务被人滥用，故所有由demo网站生成的链接随时可能失效，如需长期使用请自行搭建。`;
-const html404 = `<!DOCTYPE html><body><h1>404 Not Found.</h1><p>The url you visit is not found.</p></body>`;
+const github_repo = typeof GITHUB_REPO !== "undefined" ? GITHUB_REPO : 'AoEiuV020/Url-Shorten-Worker';
+const github_version = typeof GITHUB_VERSION !== "undefined" ? GITHUB_VERSION : '@main';
+const password = typeof PASSWORD !== "undefined" ? PASSWORD : 'AoEiuV020 yes';
+const shorten_timeout = typeof SHORTEN_TIMEOUT !== "undefined" ? SHORTEN_TIMEOUT.split("*").reduce((a, b) => parseInt(a) * parseInt(b), 1) : (1000 * 60 * 10);
+const default_len = typeof DEFAULT_LEN !== "undefined" ? parseInt(DEFAULT_LEN) : 6;
+const demo_mode = typeof DEMO_MODE !== "undefined" ? DEMO_MODE === 'true' : true;
+const remove_completely = typeof REMOVE_COMPLETELY !== "undefined" ? REMOVE_COMPLETELY === 'true' : true;
+const white_list = JSON.parse(typeof WHITE_LIST !== "undefined" ? WHITE_LIST : `["aoeiuv020.com","aoeiuv020.cn","aoeiuv020.cc","020.name"]`);
+const demo_notice = typeof DEMO_NOTICE !== "undefined" ? DEMO_NOTICE : `注意：为防止示例服务被人滥用，故所有由demo网站生成的链接随时可能失效，如需长期使用请自行搭建。`;
+const html404 = `<!DOCTYPE html>
+<html>
+<head>
+    <title>404 Not Found</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+        h1 { font-size: 50px; }
+        p { font-size: 20px; }
+    </style>
+</head>
+<body>
+    <h1>404 Not Found</h1>
+    <p>The URL you visited is not found.</p>
+</body>
+</html>`;
 
 // 工具函数
 async function randomString(len) {
@@ -70,8 +84,7 @@ function handleCorsHeaders(headers = {}) {
 }
 
 async function handleRequest(request) {
-  console.log(request);
-  
+  // 处理 POST 请求
   if (request.method === "POST") {
     const req = await request.json();
     const admin = await checkHash(req.url, req.hash);
@@ -84,28 +97,48 @@ async function handleRequest(request) {
     return new Response(`{"status":200,"key":"/${random_key}"}`, { headers: handleCorsHeaders() });
   }
   
+  // 处理 OPTIONS 请求
   if (request.method === "OPTIONS") {
     return new Response("", { headers: handleCorsHeaders() });
   }
 
+  // 处理 GET 请求
   const requestURL = new URL(request.url);
   const path = requestURL.pathname.split("/")[1];
   
+  // 如果路径为空，返回首页 HTML
   if (!path) {
     const html = await fetch(`https://cdn.jsdelivr.net/gh/${github_repo}${github_version}/index.html`);
-    const text = (await html.text()).replaceAll("###GITHUB_REPO###", github_repo).replaceAll("###GITHUB_VERSION###", github_version).replaceAll("###DEMO_NOTICE###", demo_notice);
-    
+    let text = await html.text();
+    text = text.replaceAll("###GITHUB_REPO###", github_repo)
+               .replaceAll("###GITHUB_VERSION###", github_version)
+               .replaceAll("###DEMO_NOTICE###", demo_notice);
+
+    // 添加 CSS 样式以优化显示效果
+    const css = `<style>
+                    body { font-family: Arial, sans-serif; margin: 0; padding: 0; text-align: center; background-color: #f4f4f4; }
+                    header { background: #333; color: #fff; padding: 1em 0; }
+                    h1 { margin: 0; }
+                    main { padding: 2em; }
+                    footer { background: #333; color: #fff; padding: 1em 0; position: fixed; width: 100%; bottom: 0; }
+                    .notice { color: red; font-weight: bold; }
+                </style>`;
+    text = text.replace("</head>", `${css}</head>`);
+
     return new Response(text, { headers: { "content-type": "text/html;charset=UTF-8" } });
   }
 
+  // 如果路径不为空，尝试加载 URL
   const url = await load_url(path);
   if (!url) {
     return new Response(html404, { headers: { "content-type": "text/html;charset=UTF-8" }, status: 404 });
   }
 
+  // 重定向到目标 URL
   return Response.redirect(url, 302);
 }
 
+// 添加事件监听器
 addEventListener("fetch", event => {
   event.respondWith(handleRequest(event.request));
 });
