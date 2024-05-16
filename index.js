@@ -13,14 +13,16 @@ const html404 = `<!DOCTYPE html>
 <head>
     <title>404 Not Found</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-        h1 { font-size: 50px; }
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: linear-gradient(135deg, #003153, #FFA500); color: #ecf0f1; }
+        h1 { font-size: 50px; margin-bottom: 20px; }
         p { font-size: 20px; }
+        a { color: #3498db; text-decoration: none; }
     </style>
 </head>
 <body>
     <h1>404 Not Found</h1>
     <p>The URL you visited is not found.</p>
+    <p><a href="/">Return to Home</a></p>
 </body>
 </html>`;
 
@@ -116,12 +118,16 @@ async function handleRequest(request) {
 
     // 添加 CSS 样式以优化显示效果
     const css = `<style>
-                    body { font-family: Arial, sans-serif; margin: 0; padding: 0; text-align: center; background-color: #f4f4f4; }
-                    header { background: #333; color: #fff; padding: 1em 0; }
-                    h1 { margin: 0; }
-                    main { padding: 2em; }
-                    footer { background: #333; color: #fff; padding: 1em 0; position: fixed; width: 100%; bottom: 0; }
-                    .notice { color: red; font-weight: bold; }
+                    body { font-family: 'Roboto', sans-serif; margin: 0; padding: 0; background: linear-gradient(135deg, #003153, #FFA500); color: #ecf0f1; }
+                    header { background: rgba(255, 255, 255, 0.2); padding: 1em 0; text-align: center; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); backdrop-filter: blur(10px); }
+                    header h1 { margin: 0; font-size: 2.5em; color: #fff; }
+                    main { padding: 2em; text-align: center; }
+                    footer { background: rgba(255, 255, 255, 0.2); color: #fff; padding: 1em 0; position: fixed; width: 100%; bottom: 0; text-align: center; backdrop-filter: blur(10px); }
+                    .notice { color: #e74c3c; font-weight: bold; }
+                    .container { max-width: 800px; margin: 0 auto; padding: 2em; background: rgba(255, 255, 255, 0.1); border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); backdrop-filter: blur(10px); }
+                    input[type="text"], input[type="url"], button { width: 80%; padding: 0.5em; margin: 0.5em 0; border-radius: 5px; border: 1px solid #ddd; font-size: 1em; }
+                    button { background: #3498db; color: #fff; border: none; cursor: pointer; transition: background 0.3s ease; }
+                    button:hover { background: #2980b9; }
                 </style>`;
     text = text.replace("</head>", `${css}</head>`);
 
